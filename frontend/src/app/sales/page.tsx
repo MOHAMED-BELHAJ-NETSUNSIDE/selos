@@ -685,7 +685,7 @@ export default function SalesPage() {
       } catch (fallbackError: any) {
         // Dernier recours : utiliser le prix unitaire du BCItem
         const product = availableProducts?.find(p => p.id === productId);
-        return Number(product?.bcItem?.unitPrice || 0);
+        return Number((product?.bcItem as any)?.unitPrice || 0);
       }
     }
   };
