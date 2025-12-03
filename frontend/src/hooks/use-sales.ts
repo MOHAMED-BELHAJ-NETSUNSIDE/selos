@@ -150,6 +150,8 @@ export function useUpdateSale() {
     mutationFn: async ({ id, data }: { 
       id: number; 
       data: { 
+        salespersonId?: number;
+        clientId?: number;
         remarque?: string; 
         lines?: Array<{ productId: number; qte: number; prixUnitaire: number }> 
       } 

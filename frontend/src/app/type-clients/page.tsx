@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Search, Plus, MoreHorizontal, Edit, Trash2, Loader2 } from 'lucide-react';
+import { Search, Plus, MoreHorizontal, Edit, Trash2, Loader2, XCircle, Save } from 'lucide-react';
 import { useTypeClients, useDeleteTypeClient, type TypeClient } from '@/hooks/use-type-clients';
 import api from '@/lib/api';
 

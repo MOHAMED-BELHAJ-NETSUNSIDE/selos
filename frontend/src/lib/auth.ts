@@ -42,9 +42,9 @@ export const authOptions: NextAuthOptions = {
               accessToken: response.data.access_token,
             };
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error('Auth error:', error);
-          console.error('Error details:', error.response?.data);
+          console.error('Error details:', error?.response?.data);
         }
 
         return null;

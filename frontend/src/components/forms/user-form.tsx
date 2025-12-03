@@ -190,7 +190,7 @@ export function UserForm({ user, onSuccess, mode = user ? 'edit' : 'create' }: U
           regionId: data.regionId ? Number(data.regionId) : undefined,
           canalId: data.canalId ? Number(data.canalId) : undefined,
           typeVenteId: data.typeVenteId ? Number(data.typeVenteId) : undefined,
-          bcLocationId: data.bcLocationId && data.bcLocationId !== '' ? data.bcLocationId : null,
+          bcLocationId: data.bcLocationId && data.bcLocationId !== '' ? data.bcLocationId : undefined,
         };
         await updateUserMutation.mutateAsync({ id: user.id, data: updateData });
       }

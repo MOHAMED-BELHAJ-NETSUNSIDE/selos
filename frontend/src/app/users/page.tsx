@@ -257,7 +257,7 @@ export default function UsersPage() {
             <DrawerTitle>Modifier l'utilisateur</DrawerTitle>
           </DrawerHeader>
           <div className="flex-1 overflow-y-auto px-6">
-            <UserForm user={selectedUser} onSuccess={() => setIsEditOpen(false)} mode="edit" />
+            <UserForm user={selectedUser ?? undefined} onSuccess={() => setIsEditOpen(false)} mode="edit" />
           </div>
         </DrawerContent>
       </Drawer>

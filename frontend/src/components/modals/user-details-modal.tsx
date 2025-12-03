@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useUser } from '@/hooks/use-users';
 import { Loader2, XCircle, Store } from 'lucide-react';
-import { usePermissionsCatalog } from '@/hooks/use-permissions-catalog';
+import { usePermissionsCatalog, type PermissionCatalogItem } from '@/hooks/use-permissions-catalog';
 
 interface UserDetailsModalProps {
   userId: string | null;
@@ -209,7 +209,7 @@ export function UserDetailsModal({ userId, isOpen, onClose }: UserDetailsModalPr
                                   hasWrite,
                                   hasDelete,
                                 };
-                              }).filter(Boolean);
+                              }).filter((item): item is { module: PermissionCatalogItem; hasRead: boolean; hasWrite: boolean; hasDelete: boolean } => item !== null);
                               
                               if (modulesWithPermissions.length === 0) {
                                 return (

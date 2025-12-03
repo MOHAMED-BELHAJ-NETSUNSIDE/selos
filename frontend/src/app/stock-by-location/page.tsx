@@ -320,7 +320,11 @@ function StockByLocationPageContent() {
                 ) : (
                   <>
                     <BCItemCombobox
-                      items={items}
+                      items={items.map(item => ({
+                        ...item,
+                        number: item.number ?? null,
+                        displayName: item.displayName ?? null,
+                      }))}
                       selectedId={filters.itemId}
                       onSelect={(id) => handleFilterChange('itemId', id || '')}
                       placeholder="Sélectionner un article (obligatoire)"
@@ -341,7 +345,11 @@ function StockByLocationPageContent() {
               <div>
                 <label className="text-sm font-medium mb-2 block">Magasin</label>
                 <LocationCombobox
-                  locations={locations}
+                  locations={locations.map(loc => ({
+                    ...loc,
+                    code: loc.code ?? null,
+                    displayName: loc.displayName ?? null,
+                  }))}
                   selectedId={filters.locationId}
                   onSelect={(id) => handleFilterChange('locationId', id || '')}
                   placeholder="Tous les magasins"
