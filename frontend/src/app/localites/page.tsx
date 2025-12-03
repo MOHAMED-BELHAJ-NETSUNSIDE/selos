@@ -176,7 +176,7 @@ export default function LocalitesPage() {
     if (filterGov) {
       arr = arr.filter((x) => {
         const del = x.delegation;
-        const govId = del?.gouvernorat?.id ?? del?.idGouvernorat ?? del?.id_gouvernorat;
+        const govId = del?.gouvernorat?.id ?? del?.id_gouvernorat;
         return String(govId) === filterGov;
       });
     }
@@ -223,7 +223,7 @@ export default function LocalitesPage() {
   const getNames = (x: any) => {
     const del = x.delegation || delegations.find((d) => d.id === (x.idDelegation ?? x.delegation?.id));
     // Utiliser directement la relation gouvernorat si disponible, sinon chercher par id
-    const gov = del?.gouvernorat || (del ? gouvernorats.find((g) => g.id === (del.idGouvernorat ?? del.id_gouvernorat)) : undefined);
+    const gov = del?.gouvernorat || (del ? gouvernorats.find((g) => g.id === del.id_gouvernorat) : undefined);
     return { delegation: del?.nom || '—', gouvernorat: gov?.nom || '—' };
   };
 
