@@ -362,7 +362,7 @@ function ClientFilterCombobox({
   onSelect,
   placeholder = "Tous les clients",
 }: {
-  clients: Array<{ id: number; code: string; nom: string; nomCommercial: string | null }>;
+  clients: Array<{ id: number; code: string; nom: string; nomCommercial?: string | null }>;
   selectedId?: string;
   onSelect: (id: string | null) => void;
   placeholder?: string;
