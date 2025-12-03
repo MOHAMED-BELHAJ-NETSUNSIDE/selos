@@ -198,7 +198,7 @@ export default function LocalitesPage() {
     setEditing(x); 
     setNom(x.nom);
     const del = x.delegation || delegations.find((d) => d.id === (x.idDelegation ?? x.delegation?.id));
-    const govId = del?.gouvernorat?.id ?? del?.idGouvernorat ?? del?.id_gouvernorat;
+    const govId = del?.gouvernorat?.id ?? del?.id_gouvernorat;
     setIdGouvernorat(govId ? String(govId) : undefined);
     setIdDelegation(String((x as any).idDelegation ?? x.delegation?.id ?? '')); 
     setIsOpen(true); 
