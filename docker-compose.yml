@@ -37,6 +37,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
       PORT: 3001
+      SERVER_PUBLIC_IP: ${SERVER_PUBLIC_IP:-54.37.230.48}
       BC_TENANT_ID: ${BC_TENANT_ID:-}
       BC_CLIENT_ID: ${BC_CLIENT_ID:-}
       BC_CLIENT_SECRET: ${BC_CLIENT_SECRET:-}
@@ -70,8 +71,8 @@ services:
     environment:
       NODE_ENV: production
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
-      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://54.37.230.48:3000}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://54.37.230.48:3001}
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     depends_on:
@@ -89,10 +90,24 @@ services:
     environment:
       NODE_ENV: production
       NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
-      NEXTAUTH_URL: ${NEXTAUTH_URL_RETAILS:-http://localhost:3002}
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+      NEXTAUTH_URL: ${NEXTAUTH_URL_RETAILS:-http://54.37.230.48:3002}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://54.37.230.48:3001}
     ports:
       - "${FRONTEND_RETAILS_PORT:-3002}:3002"
+    depends_on:
+      - backend
+    networks:
+      - selos-network
+
+  # Selos Mobile
+  selos-mobile:
+    build:
+      context: .
+      dockerfile: selos-mobile/Dockerfile
+    container_name: selos-mobile
+    restart: unless-stopped
+    ports:
+      - "${MOBILE_PORT:-3003}:3003"
     depends_on:
       - backend
     networks:

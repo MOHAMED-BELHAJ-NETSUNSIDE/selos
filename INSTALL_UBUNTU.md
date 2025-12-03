@@ -98,6 +98,9 @@ vim .env
 **Configuration minimale requise dans `.env` :**
 
 ```env
+# Server Public IP
+SERVER_PUBLIC_IP=54.37.230.48
+
 # Database - Changez ces valeurs pour la production
 MYSQL_ROOT_PASSWORD=votre_mot_de_passe_root_securise
 MYSQL_DATABASE=selos_db
@@ -112,13 +115,17 @@ BACKEND_PORT=3001
 
 # Frontend
 NEXTAUTH_SECRET=votre_secret_nextauth_tres_securise_changez_moi
-NEXTAUTH_URL=http://localhost:3000
-NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXTAUTH_URL=http://54.37.230.48:3000
+NEXT_PUBLIC_API_URL=http://54.37.230.48:3001
 FRONTEND_PORT=3000
 
 # Frontend Retails
-NEXTAUTH_URL_RETAILS=http://localhost:3002
+NEXTAUTH_URL_RETAILS=http://54.37.230.48:3002
 FRONTEND_RETAILS_PORT=3002
+
+# Selos Mobile
+MOBILE_PORT=3003
+VITE_API_URL=http://54.37.230.48:3001
 
 # Business Central (optionnel - à configurer si nécessaire)
 BC_TENANT_ID=
@@ -173,21 +180,23 @@ docker compose exec backend npx prisma db seed
 # Vérifier que tous les services sont en cours d'exécution
 docker compose ps
 
-# Tester les endpoints
-curl http://localhost:3001/api
-curl http://localhost:3000
-curl http://localhost:3002
+# Tester les endpoints (remplacez par votre IP publique si nécessaire)
+curl http://54.37.230.48:3001/api
+curl http://54.37.230.48:3000
+curl http://54.37.230.48:3002
+curl http://54.37.230.48:3003
 ```
 
 ## Accès aux services
 
-Une fois tout démarré, vous pouvez accéder à :
+Une fois tout démarré, vous pouvez accéder aux services via l'IP publique **54.37.230.48** :
 
-- **Frontend Backoffice** : http://localhost:3000
-- **Frontend Retails** : http://localhost:3002
-- **Backend API** : http://localhost:3001
-- **Swagger Documentation** : http://localhost:3001/api
-- **MySQL** : localhost:3306
+- **Frontend Backoffice** : http://54.37.230.48:3000
+- **Frontend Retails** : http://54.37.230.48:3002
+- **Selos Mobile** : http://54.37.230.48:3003
+- **Backend API** : http://54.37.230.48:3001
+- **Swagger Documentation** : http://54.37.230.48:3001/api
+- **MySQL** : localhost:3306 (interne au serveur uniquement)
 
 ## Commandes utiles
 

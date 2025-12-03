@@ -11,6 +11,7 @@ async function bootstrap() {
   app.use(require('express').urlencoded({ limit: '50mb', extended: true }));
 
   // Enable CORS
+  const serverPublicIp = process.env.SERVER_PUBLIC_IP || '54.37.230.48';
   app.enableCors({
     origin: [
       'http://localhost', // Capacitor Android utilise cette origine
@@ -21,10 +22,14 @@ async function bootstrap() {
       'http://127.0.0.1:3002',
       'http://localhost:3003',
       'http://127.0.0.1:3003',
+      `http://${serverPublicIp}:3000`, // Frontend sur IP publique
+      `http://${serverPublicIp}:3002`, // Frontend Retails sur IP publique
+      `http://${serverPublicIp}:3003`, // Mobile sur IP publique
       'http://192.168.1.66:3003', // Accès depuis mobile sur le réseau local
       /^http:\/\/192\.168\.\d+\.\d+:3003$/, // Autoriser toutes les IPs du réseau local sur le port 3003
       /^http:\/\/localhost(:[0-9]+)?$/, // Autoriser localhost avec ou sans port
       /^http:\/\/127\.0\.0\.1(:[0-9]+)?$/, // Autoriser 127.0.0.1 avec ou sans port
+      /^http:\/\/54\.37\.230\.48(:[0-9]+)?$/, // Autoriser l'IP publique du serveur
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],

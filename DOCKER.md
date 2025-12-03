@@ -32,11 +32,14 @@
 
 ## Services disponibles
 
-- **Backend API**: http://localhost:3001
-- **Swagger**: http://localhost:3001/api
-- **Frontend**: http://localhost:3000
-- **Frontend Retails**: http://localhost:3002
-- **MySQL**: localhost:3306
+Une fois déployé, les services sont accessibles via l'IP publique **54.37.230.48** :
+
+- **Frontend Backoffice**: http://54.37.230.48:3000
+- **Frontend Retails**: http://54.37.230.48:3002
+- **Selos Mobile**: http://54.37.230.48:3003
+- **Backend API**: http://54.37.230.48:3001
+- **Swagger Documentation**: http://54.37.230.48:3001/api
+- **MySQL**: localhost:3306 (interne au serveur)
 
 ## Commandes utiles
 
@@ -94,6 +97,11 @@ docker-compose ps
 ### Frontend Retails
 - Port: 3002 (configurable via `FRONTEND_RETAILS_PORT`)
 - Build optimisé avec `standalone` output
+
+### Selos Mobile
+- Port: 3003 (configurable via `MOBILE_PORT`)
+- Application web PWA servie via Nginx
+- Accessible depuis les appareils mobiles via l'IP publique
 
 ## Production
 
