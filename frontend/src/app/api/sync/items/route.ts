@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
         
         // Récupérer les prix pour chaque item du lot en parallèle
         const pricePromises = itemBatch.map(async (item) => {
-          const itemNumber = item.number || item.Number || item.itemNumber;
+          const itemNumber = item.number;
           if (!itemNumber) {
             console.warn(`Item without number:`, item);
             return [];

@@ -601,7 +601,7 @@ export default function DeliveryNotesPage() {
     } catch (error: any) {
       // Si l'endpoint n'existe pas, utiliser le prix unitaire du BCItem
       const product = availableProducts?.find(p => p.id === productId);
-      return Number(product?.bcItem?.unitPrice || 0);
+      return Number((product?.bcItem as any)?.unitPrice || 0);
     }
   };
 
