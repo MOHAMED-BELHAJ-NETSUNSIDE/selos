@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: selos-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-selos_db}
+      MYSQL_USER: ${MYSQL_USER:-selos_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-selos_password}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./selos.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - selos-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpassword}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: selos-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: mysql://${MYSQL_USER:-selos_user}:${MYSQL_PASSWORD:-selos_password}@mysql:3306/${MYSQL_DATABASE:-selos_db}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      PORT: 3001
+      BC_TENANT_ID: ${BC_TENANT_ID:-}
+      BC_CLIENT_ID: ${BC_CLIENT_ID:-}
+      BC_CLIENT_SECRET: ${BC_CLIENT_SECRET:-}
+      BC_ENVIRONMENT: ${BC_ENVIRONMENT:-}
+      BC_COMPANY_ID: ${BC_COMPANY_ID:-}
+      BC_COMPANY_NAME: ${BC_COMPANY_NAME:-}
+      TIMBRE: ${TIMBRE:-1.00}
+    ports:
+      - "${BACKEND_PORT:-3001}:3001"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - selos-network
+    volumes:
+      - ./backend/prisma:/app/prisma:ro
+    command: >
+      sh -c "
+        npx prisma migrate deploy &&
+        npx prisma generate &&
+        npm run start:prod
+      "
+
+  # Frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: selos-frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      - backend
+    networks:
+      - selos-network
+
+  # Frontend Retails
+  frontend-retails:
+    build:
+      context: .
+      dockerfile: frontend-retails/Dockerfile
+    container_name: selos-frontend-retails
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXTAUTH_URL: ${NEXTAUTH_URL_RETAILS:-http://localhost:3002}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+    ports:
+      - "${FRONTEND_RETAILS_PORT:-3002}:3002"
+    depends_on:
+      - backend
+    networks:
+      - selos-network
+
+networks:
+  selos-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
+

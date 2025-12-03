@@ -1,0 +1,33 @@
+{
+  "name": "selos",
+  "version": "1.0.0",
+  "description": "Backoffice retail moderne avec NestJS et Next.js",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" \"npm run dev:retails\"",
+    "dev:backend": "cd backend && npm run start:dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:retails": "cd frontend-retails && npm run dev",
+    "build": "npm run build:backend && npm run build:frontend && npm run build:retails",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "build:retails": "cd frontend-retails && npm run build",
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\" \"npm run start:retails\"",
+    "start:backend": "cd backend && npm run start:prod",
+    "start:frontend": "cd frontend && npm run start",
+    "start:retails": "cd frontend-retails && npm run start",
+    "db:generate": "cd backend && npx prisma generate",
+    "db:push": "cd backend && npx prisma db push",
+    "db:seed": "cd backend && npx prisma db seed",
+    "db:studio": "cd backend && npx prisma studio",
+    "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install && cd ../frontend-retails && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "wait-on": "^7.2.0"
+  }
+}
+
+
+
+

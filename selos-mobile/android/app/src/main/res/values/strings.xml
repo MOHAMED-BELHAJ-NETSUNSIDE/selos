@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Selos Mobile</string>
+    <string name="title_activity_main">Selos Mobile</string>
+    <string name="package_name">com.selos.mobile</string>
+    <string name="custom_url_scheme">com.selos.mobile</string>
+</resources>

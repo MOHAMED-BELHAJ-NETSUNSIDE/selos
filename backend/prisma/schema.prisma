@@ -1,0 +1,1006 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String      @id @default(cuid())
+  email        String      @unique
+  password     String
+  firstName    String
+  lastName     String
+  isActive     Boolean     @default(true)
+  roleId       String?
+  typeUserId   Int?
+  secteurId    Int?
+  regionId     Int?
+  canalId      Int?
+  typeVenteId  Int?
+  bcLocationId String?     @map("bc_location_id")
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  logs         Log[]
+  role         Role?       @relation(fields: [roleId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  typeUser     TypeUser?   @relation(fields: [typeUserId], references: [id], onDelete: SetNull)
+  secteur      Secteur?    @relation(fields: [secteurId], references: [id], onDelete: SetNull)
+  region       Region?     @relation(fields: [regionId], references: [id], onDelete: SetNull)
+  canal        Canal?      @relation(fields: [canalId], references: [id], onDelete: SetNull)
+  typeVente    TypeVente?  @relation(fields: [typeVenteId], references: [id], onDelete: SetNull)
+  bcLocation   BCLocation? @relation(fields: [bcLocationId], references: [bcId], onDelete: SetNull)
+
+  // Relations pour les autres modules
+  purchaseOrdersCreated   PurchaseOrder[] @relation("PurchaseOrderCreatedBy")
+  purchaseOrdersValidated PurchaseOrder[] @relation("PurchaseOrderValidatedBy")
+  deliveryNotesCreated    DeliveryNote[]  @relation("DeliveryNoteCreatedBy")
+  deliveryNotesValidated  DeliveryNote[]  @relation("DeliveryNoteValidatedBy")
+  salesCreated            Sale[]          @relation("SaleCreatedBy")
+  salesValidated          Sale[]          @relation("SaleValidatedBy")
+
+  @@index([roleId], map: "users_roleId_fkey")
+  @@index([typeUserId])
+  @@index([secteurId])
+  @@index([regionId])
+  @@index([canalId])
+  @@index([typeVenteId])
+  @@index([bcLocationId])
+  @@map("users")
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  permissions String   @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  users       User[]
+
+  @@map("roles")
+}
+
+model Client {
+  id               Int            @id @default(autoincrement())
+  code             String         @unique
+  nom              String
+  nomCommercial    String?
+  numeroTelephone  String?
+  adresse          String?
+  longitude        Decimal?
+  latitude         Decimal?
+  registreCommerce String?
+  typeClientId     Int?
+  typeVenteId      Int?
+  canalId          Int?
+  localiteId       Int?
+  secteurId        Int?
+  canal            Canal?         @relation(fields: [canalId], references: [id], onDelete: SetNull)
+  localite         Localite?      @relation(fields: [localiteId], references: [id], onDelete: SetNull)
+  secteur          Secteur?       @relation(fields: [secteurId], references: [id], onDelete: SetNull)
+  typeClient       TypeClient?    @relation(fields: [typeClientId], references: [id], onDelete: SetNull)
+  typeVente        TypeVente?     @relation(fields: [typeVenteId], references: [id], onDelete: SetNull)
+  deliveryNotes    DeliveryNote[]
+  sales            Sale[]
+
+  @@index([code])
+  @@index([nom])
+  @@map("client")
+}
+
+model Log {
+  id          String   @id @default(cuid())
+  userId      String
+  module      String
+  action      String
+  recordId    String?
+  description String?
+  oldData     Json?
+  newData     Json?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId], map: "logs_userId_fkey")
+  @@map("logs")
+}
+
+// ============================
+// Domain tables mapped from selos.sql
+// ============================
+
+model Canal {
+  id               Int            @id @default(autoincrement())
+  nom              String
+  clients          Client[]
+  users            User[]
+  zoneCanals       ZoneCanal[]
+  secteurCanals    SecteurCanal[]
+  bcCustomersLocal BCCustomer[]
+  salespersonCanals SalespersonCanal[]
+
+  @@map("canal")
+}
+
+model Localite {
+  id            Int            @id @default(autoincrement())
+  nom           String
+  idDelegation  Int?
+  delegation    Delegation?    @relation(fields: [idDelegation], references: [id], onDelete: Cascade)
+  clients       Client[]
+  zoneLocalites ZoneLocalite[]
+
+  @@map("localite")
+}
+
+model Zone {
+  id                     Int                     @id @default(autoincrement())
+  nom                    String
+  frequenceVisite        String?
+  chefs                  ChefZone[]
+  secteurZones           SecteurZone[]
+  zoneTypeVentes         ZoneTypeVente[]
+  zoneCanals             ZoneCanal[]
+  zoneLocalites          ZoneLocalite[]
+  circuitCommercialZones CircuitCommercialZone[]
+
+  @@map("zone")
+}
+
+model TypeVente {
+  id                Int                @id @default(autoincrement())
+  nom               String
+  secteurTypeVentes SecteurTypeVente[]
+  zoneTypeVentes    ZoneTypeVente[]
+  clients           Client[]
+  users             User[]
+  bcCustomersLocal  BCCustomer[]
+  salespersonTypeVentes SalespersonTypeVente[]
+
+  @@map("type_vente")
+}
+
+model TypeUser {
+  id    Int    @id @default(autoincrement())
+  nom   String
+  users User[]
+
+  @@map("type_user")
+}
+
+model TypeClient {
+  id      Int      @id @default(autoincrement())
+  nom     String
+  clients Client[]
+
+  @@map("type_client")
+}
+
+model SousRegion {
+  id                Int                @id @default(autoincrement())
+  nom               String
+  regionSousRegions RegionSousRegion[]
+
+  @@map("sous_region")
+}
+
+model Region {
+  id                Int                @id @default(autoincrement())
+  nom               String
+  regionSousRegions RegionSousRegion[]
+  users             User[]
+
+  @@map("region")
+}
+
+model Secteur {
+  id                Int                @id @default(autoincrement())
+  nom               String
+  chefs             ChefSecteur[]
+  secteurZones      SecteurZone[]
+  secteurTypeVentes SecteurTypeVente[]
+  secteurCanals     SecteurCanal[]
+  clients           Client[]
+  users             User[]
+  salespersons      Salesperson[]
+  circuitCommercial CircuitCommercial?
+
+  @@map("secteur")
+}
+
+model Gouvernorat {
+  id          Int          @id @default(autoincrement())
+  nom         String
+  delegations Delegation[]
+
+  @@map("gouvernorat")
+}
+
+model Delegation {
+  id            Int         @id @default(autoincrement())
+  nom           String
+  idGouvernorat Int
+  gouvernorat   Gouvernorat @relation(fields: [idGouvernorat], references: [id], onDelete: Cascade)
+  localites     Localite[]
+
+  @@map("delegation")
+}
+
+model ChefSecteur {
+  id        Int      @id @default(autoincrement())
+  nom       String
+  secteurId Int?
+  secteur   Secteur? @relation(fields: [secteurId], references: [id], onDelete: SetNull)
+
+  @@map("chef_secteur")
+}
+
+model ChefZone {
+  id     Int    @id @default(autoincrement())
+  nom    String
+  zoneId Int?
+  zone   Zone?  @relation(fields: [zoneId], references: [id], onDelete: SetNull)
+
+  @@map("chef_zone")
+}
+
+// (cleaned leftover from ClientNew removal)
+
+model SecteurZone {
+  secteurId Int
+  zoneId    Int
+  secteur   Secteur @relation(fields: [secteurId], references: [id], onDelete: Cascade)
+  zone      Zone    @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+
+  @@id([secteurId, zoneId])
+  @@map("secteur_zone")
+}
+
+model SecteurTypeVente {
+  secteurId   Int
+  typeVenteId Int
+  secteur     Secteur   @relation(fields: [secteurId], references: [id], onDelete: Cascade)
+  typeVente   TypeVente @relation(fields: [typeVenteId], references: [id], onDelete: Cascade)
+
+  @@id([secteurId, typeVenteId])
+  @@map("secteur_type_vente")
+}
+
+model ZoneTypeVente {
+  zoneId      Int
+  typeVenteId Int
+  zone        Zone      @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  typeVente   TypeVente @relation(fields: [typeVenteId], references: [id], onDelete: Cascade)
+
+  @@id([zoneId, typeVenteId])
+  @@map("zone_type_vente")
+}
+
+model ZoneCanal {
+  zoneId  Int
+  canalId Int
+  zone    Zone  @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  canal   Canal @relation(fields: [canalId], references: [id], onDelete: Cascade)
+
+  @@id([zoneId, canalId])
+  @@map("zone_canal")
+}
+
+model ZoneLocalite {
+  zoneId     Int
+  localiteId Int
+  zone       Zone     @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  localite   Localite @relation(fields: [localiteId], references: [id], onDelete: Cascade)
+
+  @@id([zoneId, localiteId])
+  @@map("zone_localite")
+}
+
+model SecteurCanal {
+  secteurId Int
+  canalId   Int
+  secteur   Secteur @relation(fields: [secteurId], references: [id], onDelete: Cascade)
+  canal     Canal   @relation(fields: [canalId], references: [id], onDelete: Cascade)
+
+  @@id([secteurId, canalId])
+  @@map("secteur_canal")
+}
+
+model RegionSousRegion {
+  regionId     Int
+  sousRegionId Int
+  region       Region     @relation(fields: [regionId], references: [id], onDelete: Cascade)
+  sousRegion   SousRegion @relation(fields: [sousRegionId], references: [id], onDelete: Cascade)
+
+  @@id([regionId, sousRegionId])
+  @@map("region_sous_region")
+}
+
+model CircuitCommercial {
+  id                     Int                     @id @default(autoincrement())
+  secteurId              Int                     @unique
+  secteur                Secteur                 @relation(fields: [secteurId], references: [id], onDelete: Cascade)
+  circuitCommercialZones CircuitCommercialZone[]
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+
+  @@index([secteurId])
+  @@map("circuit_commercial")
+}
+
+model CircuitCommercialZone {
+  id                  Int               @id @default(autoincrement())
+  circuitCommercialId Int
+  zoneId              Int
+  jour                Int               @db.TinyInt
+  frequence           String            @default("semaine")
+  groupes             String?
+  circuitCommercial   CircuitCommercial @relation(fields: [circuitCommercialId], references: [id], onDelete: Cascade)
+  zone                Zone              @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  @@unique([circuitCommercialId, zoneId, jour], name: "unique_zone_jour")
+  @@index([circuitCommercialId])
+  @@index([zoneId])
+  @@index([jour])
+  @@map("circuit_commercial_zone")
+}
+
+model BCCustomer {
+  id                    Int       @id @default(autoincrement())
+  bcId                  String    @unique
+  number                String?
+  displayName           String?
+  type                  String?
+  blocked               Boolean?  @default(false)
+  phoneNumber           String?
+  email                 String?
+  currencyCode          String?
+  taxRegistrationNumber String?
+  addressStreet         String?   @map("address_street")
+  addressCity           String?   @map("address_city")
+  addressState          String?   @map("address_state")
+  addressCountry        String?   @map("address_country")
+  addressPostalCode     String?   @map("address_postal_code")
+  lastModified          DateTime? @map("last_modified")
+  etag                  String?
+  rawJson               Json?     @map("raw_json")
+  localCanalId          Int?      @map("local_canal_id")
+  localTypeVenteId      Int?      @map("local_type_vente_id")
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  localCanal     Canal?     @relation(fields: [localCanalId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  localTypeVente TypeVente? @relation(fields: [localTypeVenteId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  // Relation avec Salesperson (1-1 optionnelle)
+  salesperson Salesperson?
+
+  @@index([bcId])
+  @@index([number])
+  @@index([displayName])
+  @@index([localCanalId])
+  @@index([localTypeVenteId])
+  @@map("bc_customers")
+}
+
+model BCLocation {
+  id              Int       @id @default(autoincrement())
+  bcId            String    @unique
+  code            String?
+  displayName     String?
+  address         String?
+  address2        String?   @map("address_2")
+  city            String?
+  state           String?
+  country         String?
+  postalCode      String?   @map("postal_code")
+  phoneNumber     String?   @map("phone_number")
+  email           String?
+  contact         String?
+  useAsInTransit  Boolean?  @default(false) @map("use_as_in_transit")
+  requireShipment Boolean?  @default(false) @map("require_shipment")
+  requireReceive  Boolean?  @default(false) @map("require_receive")
+  requirePutAway  Boolean?  @default(false) @map("require_put_away")
+  requirePick     Boolean?  @default(false) @map("require_pick")
+  lastModified    DateTime? @map("last_modified")
+  etag            String?
+  rawJson         Json?     @map("raw_json")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  users          User[]
+  salespersons   Salesperson[]
+  purchaseOrders PurchaseOrder[]
+
+  @@index([bcId])
+  @@index([code])
+  @@index([displayName])
+  @@map("bc_locations")
+}
+
+model BCItem {
+  id                Int       @id @default(autoincrement())
+  bcId              String    @unique
+  number            String?
+  displayName       String?
+  type              String?
+  itemCategoryCode  String?   @map("item_category_code")
+  itemCategoryId    String?   @map("item_category_id")
+  baseUnitOfMeasure String?   @map("base_unit_of_measure")
+  unitPrice         Decimal?  @map("unit_price") @db.Decimal(18, 4)
+  unitCost          Decimal?  @map("unit_cost") @db.Decimal(18, 4)
+  inventory         Decimal?  @db.Decimal(18, 4)
+  blocked           Boolean?  @default(false)
+  gtin              String?
+  lastModified      DateTime? @map("last_modified")
+  etag              String?
+  rawJson           Json?     @map("raw_json")
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  products Product[]
+  prices   BCItemPrice[]
+
+  @@index([bcId])
+  @@index([number])
+  @@index([displayName])
+  @@map("bc_items")
+}
+
+// Liste des prix produit depuis Business Central (basé sur itemSalesPrices OData V4)
+model BCItemPrice {
+  id                Int       @id @default(autoincrement())
+  bcId              String? // ID depuis Business Central (peut être null, pas unique car BC peut ne pas fournir d'ID unique)
+  itemId            String    @map("item_id") // Item_No depuis BC (lien vers BCItem.bcId)
+  itemNumber        String?   @map("item_number") // Numéro de l'item pour faciliter les recherches
+  unitPrice         Decimal   @map("unit_price") @db.Decimal(18, 4) // Unit_Price
+  minimumQuantity   Decimal?  @map("minimum_quantity") @db.Decimal(18, 4) // Minimum_Quantity
+  salesType         String?   @map("sales_type") // Sales_Type: "All Customers", "Customer", "Customer Price Group", "Campaign"
+  salesCode         String?   @map("sales_code") // Sales_Code: Code client ou groupe de prix client
+  salesCodeName     String?   @map("sales_code_name") // Nom du client ou groupe (récupéré séparément)
+  startingDate      DateTime? @map("starting_date") // Starting_Date
+  endingDate        DateTime? @map("ending_date") // Ending_Date
+  unitOfMeasureCode String?   @map("unit_of_measure_code") // Unit_of_Measure_Code
+  currencyCode      String?   @map("currency_code") // Currency_Code
+  variantCode       String?   @map("variant_code") // Variant_Code
+  priceIncludesVAT  Boolean?  @default(false) @map("price_includes_vat") // Price_Includes_VAT
+  allowLineDisc     Boolean?  @default(false) @map("allow_line_disc") // Allow_Line_Disc
+  allowInvoiceDisc  Boolean?  @default(false) @map("allow_invoice_disc") // Allow_Invoice_Disc
+  vatBusPostingGr   String?   @map("vat_bus_posting_gr") // VAT_Bus_Posting_Gr_Price
+  lastModified      DateTime? @map("last_modified") // Date de dernière modification BC
+  etag              String? // ETag pour la synchronisation
+  rawJson           Json?     @map("raw_json") // Données brutes depuis BC
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relation avec BCItem
+  bcItem BCItem? @relation(fields: [itemId], references: [bcId], onDelete: Cascade)
+
+  @@index([itemId])
+  @@index([itemNumber])
+  @@index([salesType])
+  @@index([salesCode])
+  @@index([startingDate])
+  @@index([endingDate])
+  @@map("bc_item_prices")
+}
+
+// ============================
+// MODULE STOCK - Structure optimisée
+// ============================
+
+// Table Salesperson (table séparée avec dépôt intégré + login/password pour Selos Retails)
+model Salesperson {
+  id Int @id @default(autoincrement())
+
+  // Informations personnelles du vendeur
+  firstName    String    @map("first_name")
+  lastName     String    @map("last_name")
+  email        String?   @unique
+  code         String?   @unique
+  telephone    String?
+  adresse      String?
+  tva          String?   @map("tva") // Numéro TVA récupéré depuis Business Central
+  dateEmbauche DateTime? @map("date_embauche")
+  statut       String    @default("actif")
+
+  // Login et mot de passe pour Selos Retails
+  login    String @unique // Login pour se connecter à Selos Retails
+  password String // Mot de passe hashé pour Selos Retails
+
+  // Informations du dépôt (intégrées directement)
+  depotName     String  @map("depot_name")
+  depotAdresse  String? @map("depot_adresse")
+  depotTel      String? @map("depot_tel")
+  depotStatus   Int     @default(1) @map("depot_status") // 1 = actif, 0 = inactif
+  depotRemarque String? @map("depot_remarque") @db.Text
+
+  // Lien optionnel vers un client Business Central
+  bcCustomerId String?     @unique @map("bc_customer_id")
+  bcCustomer   BCCustomer? @relation(fields: [bcCustomerId], references: [bcId], onDelete: SetNull)
+  bcCode       String?     @map("bc_code") // Code BC (number) du client pour la traçabilité
+
+  // Lien optionnel vers un magasin Business Central
+  bcLocationId String?     @map("bc_location_id")
+  bcLocation   BCLocation? @relation(fields: [bcLocationId], references: [bcId], onDelete: SetNull)
+
+  // Lien vers un secteur (nullable temporairement pour permettre la migration)
+  secteurId Int?     @map("secteur_id")
+  secteur   Secteur? @relation(fields: [secteurId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  chargementTypes   ChargementType[]
+  purchaseOrders    PurchaseOrder[]
+  stockTotals       StockTotal[]
+  stockTransactions StockTransaction[]
+  stockSoldes       StockSolde[]
+  purchaseInvoices PurchaseInvoice[]
+  returnInvoices    ReturnInvoice[]
+  deliveryNotes     DeliveryNote[]
+  sales             Sale[]
+  salespersonCanals SalespersonCanal[]
+  salespersonTypeVentes SalespersonTypeVente[]
+
+  @@index([code])
+  @@index([login])
+  @@index([email])
+  @@index([statut])
+  @@index([bcCustomerId])
+  @@index([bcLocationId])
+  @@index([secteurId])
+  @@map("salesperson")
+}
+
+// Tables de jointure pour les relations many-to-many
+model SalespersonCanal {
+  salespersonId Int
+  canalId       Int
+  salesperson   Salesperson @relation(fields: [salespersonId], references: [id], onDelete: Cascade)
+  canal         Canal       @relation(fields: [canalId], references: [id], onDelete: Cascade)
+
+  @@id([salespersonId, canalId])
+  @@map("salesperson_canal")
+}
+
+model SalespersonTypeVente {
+  salespersonId Int
+  typeVenteId   Int
+  salesperson   Salesperson @relation(fields: [salespersonId], references: [id], onDelete: Cascade)
+  typeVente     TypeVente   @relation(fields: [typeVenteId], references: [id], onDelete: Cascade)
+
+  @@id([salespersonId, typeVenteId])
+  @@map("salesperson_type_vente")
+}
+
+// Produits locaux (peut être lié à BCItem ou être indépendant)
+model Product {
+  id          Int      @id @default(autoincrement())
+  ref         String?  @unique
+  designation String
+  nameMobile  String?  @map("name_mobile")
+  codeBarre   String?  @map("code_barre") @db.VarChar(13)
+  poids       Decimal? @db.Decimal(10, 2)
+  isHht       Boolean  @default(false) @map("is_hht")
+  etatProduit Int?     @default(1) @map("etat_produit")
+  bcItemId    String?  @map("bc_item_id") // Lien optionnel vers BCItem
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  bcItem               BCItem?               @relation(fields: [bcItemId], references: [bcId], onDelete: SetNull)
+  stockTotals          StockTotal[]
+  purchaseOrderLines   PurchaseOrderLine[]
+  purchaseInvoiceLines PurchaseInvoiceLine[]
+  returnInvoiceLines   ReturnInvoiceLine[]
+  deliveryNoteLines    DeliveryNoteLine[]
+  saleLines            SaleLine[]
+  stockTransactions    StockTransaction[]
+  stockSoldes          StockSolde[]
+
+  @@index([ref])
+  @@index([designation])
+  @@index([isHht])
+  @@index([bcItemId])
+  @@map("product")
+}
+
+// Stock total par produit et vendeur (salespersonId au lieu de depotId)
+model StockTotal {
+  id            Int      @id @default(autoincrement())
+  productId     Int      @map("product_id")
+  salespersonId Int      @map("salesperson_id")
+  totalStock    Decimal  @default(0) @map("total_stock") @db.Decimal(10, 2)
+  lastUpdated   DateTime @default(now()) @updatedAt @map("last_updated")
+
+  product     Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  salesperson Salesperson @relation(fields: [salespersonId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, salespersonId])
+  @@index([productId])
+  @@index([salespersonId])
+  @@map("stock_total")
+}
+
+// Types de chargement (modèles de chargement prédéfinis)
+model ChargementType {
+  id            Int      @id @default(autoincrement())
+  salespersonId Int      @map("salesperson_id")
+  name          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  salesperson    Salesperson             @relation(fields: [salespersonId], references: [id], onDelete: Cascade)
+  purchaseOrders PurchaseOrder[]         @relation("ChargementTypePurchaseOrders") // Relation one-to-many : un chargement type peut avoir plusieurs bons de commande
+  products       ChargementTypeProduct[]
+
+  @@index([salespersonId])
+  @@map("chargement_type")
+}
+
+// Produits dans un type de chargement
+model ChargementTypeProduct {
+  id               Int     @id @default(autoincrement())
+  chargementTypeId Int     @map("chargement_type_id")
+  productId        String  @map("product_id") // bcId de BCItem
+  qte              Decimal @default(0) @db.Decimal(10, 2)
+
+  chargementType ChargementType @relation(fields: [chargementTypeId], references: [id], onDelete: Cascade)
+
+  @@index([chargementTypeId])
+  @@index([productId])
+  @@map("chargement_type_product")
+}
+
+// Bons de commande
+model PurchaseOrder {
+  id               Int       @id @default(autoincrement())
+  numero           String    @unique
+  salespersonId    Int       @map("salesperson_id")
+  chargementTypeId Int?      @map("chargement_type_id")
+  bcLocationId     String?   @map("bc_location_id")
+  status           String    @default("non_valide") // 'non_valide', 'valide', 'envoye_bc', 'expedie', 'annule'
+  dateCommande     DateTime  @default(now()) @map("date_commande")
+  dateValidation   DateTime? @map("date_validation")
+  dateEnvoiBC      DateTime? @map("date_envoi_bc")
+  remarque         String?   @db.Text
+  createdById      String    @map("created_by_id")
+  validatedById    String?   @map("validated_by_id")
+
+  // Intégration Business Central
+  bcId             String?   @unique @map("bc_id")
+  bcNumber         String?   @map("bc_number")
+  bcEtag           String?   @map("bc_etag")
+  bcLastModified   DateTime? @map("bc_last_modified")
+  bcStatus         String?   @map("bc_status") // Statut du bon de commande dans BC (ex: "Draft", "In Review", "Released")
+  bcFullyShipped   Boolean?  @default(false) @map("bc_fully_shipped") // Indique si la commande est entièrement expédiée dans BC
+  bcShipmentNumber String?   @map("bc_shipment_number") // Numéro de l'expédition dans BC (si expédiée)
+  bcInvoiced       Boolean?  @default(false) @map("bc_invoiced") // Indique si la commande a été facturée dans BC (présente dans salesInvoice)
+  bcInvoiceNumber  String?   @map("bc_invoice_number") // Numéro de la facture de vente dans BC (si facturée)
+  bcSyncError      String?   @map("bc_sync_error") @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  salesperson       Salesperson         @relation(fields: [salespersonId], references: [id], onDelete: Restrict)
+  chargementType    ChargementType?     @relation("ChargementTypePurchaseOrders", fields: [chargementTypeId], references: [id], onDelete: SetNull)
+  bcLocation        BCLocation?         @relation(fields: [bcLocationId], references: [bcId], onDelete: SetNull)
+  createdBy         User                @relation("PurchaseOrderCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  validatedBy       User?               @relation("PurchaseOrderValidatedBy", fields: [validatedById], references: [id], onDelete: SetNull)
+  lines             PurchaseOrderLine[]
+  stockTransactions StockTransaction[]
+  purchaseInvoice   PurchaseInvoice?
+  returnInvoice     ReturnInvoice?
+
+  @@index([salespersonId])
+  @@index([status])
+  @@index([dateCommande])
+  @@index([chargementTypeId])
+  @@index([bcLocationId])
+  @@index([bcId])
+  @@map("purchase_order")
+}
+
+// Lignes de bon de commande
+model PurchaseOrderLine {
+  id              Int      @id @default(autoincrement())
+  purchaseOrderId Int      @map("purchase_order_id")
+  productId       Int      @map("product_id")
+  qte             Decimal  @db.Decimal(10, 2)
+  qteRecue        Decimal  @default(0) @map("qte_recue") @db.Decimal(10, 2)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  product       Product       @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([purchaseOrderId])
+  @@index([productId])
+  @@map("purchase_order_line")
+}
+
+// Factures d'achat (pour Selos Retails)
+model PurchaseInvoice {
+  id              Int      @id @default(autoincrement())
+  numero          String   @unique
+  purchaseOrderId Int      @unique @map("purchase_order_id")
+  salespersonId   Int      @map("salesperson_id") // Salesperson ID
+  status          String   @default("valide")
+  dateFacture     DateTime @default(now()) @map("date_facture")
+  montantTotal    Decimal  @default(0) @map("montant_total") @db.Decimal(10, 2)
+  montantHT       Decimal? @map("montant_ht") @db.Decimal(10, 2)
+  montantTTC      Decimal? @map("montant_ttc") @db.Decimal(10, 2)
+  montantTVA      Decimal? @map("montant_tva") @db.Decimal(10, 2)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  purchaseOrder PurchaseOrder         @relation(fields: [purchaseOrderId], references: [id], onDelete: Restrict)
+  salesperson   Salesperson           @relation(fields: [salespersonId], references: [id], onDelete: Restrict)
+  lines         PurchaseInvoiceLine[]
+
+  @@index([purchaseOrderId])
+  @@index([salespersonId])
+  @@index([status])
+  @@map("purchase_invoice")
+}
+
+// Lignes de facture d'achat
+model PurchaseInvoiceLine {
+  id                    Int       @id @default(autoincrement())
+  purchaseInvoiceId     Int       @map("purchase_invoice_id")
+  productId             Int       @map("product_id")
+  qte                   Decimal   @db.Decimal(10, 2)
+  prixUnitaire          Decimal?  @map("prix_unitaire") @db.Decimal(10, 2)
+  montant               Decimal   @db.Decimal(10, 2)
+  // Champs récupérés depuis BC
+  unite                 String?   @map("unite") // unitOfMeasureCode
+  discountAmount        Decimal?  @map("discount_amount") @db.Decimal(10, 2)
+  discountPercent       Decimal?  @map("discount_percent") @db.Decimal(10, 2)
+  amountExcludingTax    Decimal?  @map("amount_excluding_tax") @db.Decimal(10, 2)
+  totalTaxAmount        Decimal?  @map("total_tax_amount") @db.Decimal(10, 2)
+  taxPercent            Decimal?  @map("tax_percent") @db.Decimal(10, 2)
+  amountIncludingTax    Decimal?  @map("amount_including_tax") @db.Decimal(10, 2)
+  netAmount             Decimal?  @map("net_amount") @db.Decimal(10, 2)
+  netTaxAmount          Decimal?  @map("net_tax_amount") @db.Decimal(10, 2)
+  netAmountIncludingTax Decimal?  @map("net_amount_including_tax") @db.Decimal(10, 2)
+  shipmentDate          DateTime? @map("shipment_date")
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  purchaseInvoice PurchaseInvoice @relation(fields: [purchaseInvoiceId], references: [id], onDelete: Cascade)
+  product         Product         @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([purchaseInvoiceId])
+  @@index([productId])
+  @@map("purchase_invoice_line")
+}
+
+// Factures de retour (pour Selos Retails)
+model ReturnInvoice {
+  id              Int      @id @default(autoincrement())
+  numero          String   @unique
+  purchaseOrderId Int?     @unique @map("purchase_order_id") // Optionnel : peut être créée sans bon de commande
+  salespersonId   Int      @map("salesperson_id") // Salesperson ID
+  status          String   @default("cree") // 'cree', 'valide'
+  dateFacture     DateTime @default(now()) @map("date_facture")
+  montantTotal    Decimal  @default(0) @map("montant_total") @db.Decimal(10, 2)
+  montantHT       Decimal? @map("montant_ht") @db.Decimal(10, 2)
+  montantTTC      Decimal? @map("montant_ttc") @db.Decimal(10, 2)
+  montantTVA      Decimal? @map("montant_tva") @db.Decimal(10, 2)
+
+  // Intégration Business Central
+  bcId           String?   @unique @map("bc_id")
+  bcNumber       String?   @map("bc_number")
+  bcEtag         String?   @map("bc_etag")
+  bcLastModified DateTime? @map("bc_last_modified")
+  bcSyncError    String?   @map("bc_sync_error") @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  purchaseOrder     PurchaseOrder?      @relation(fields: [purchaseOrderId], references: [id], onDelete: Restrict)
+  salesperson       Salesperson         @relation(fields: [salespersonId], references: [id], onDelete: Restrict)
+  lines             ReturnInvoiceLine[]
+  stockTransactions StockTransaction[]
+
+  @@index([purchaseOrderId])
+  @@index([salespersonId])
+  @@index([status])
+  @@index([bcId])
+  @@map("return_invoice")
+}
+
+// Lignes de facture de retour
+model ReturnInvoiceLine {
+  id                    Int       @id @default(autoincrement())
+  returnInvoiceId       Int       @map("return_invoice_id")
+  productId             Int       @map("product_id")
+  qte                   Decimal   @db.Decimal(10, 2)
+  prixUnitaire          Decimal?  @map("prix_unitaire") @db.Decimal(10, 2)
+  montant               Decimal   @db.Decimal(10, 2)
+  // Champs récupérés depuis BC
+  unite                 String?   @map("unite") // unitOfMeasureCode
+  discountAmount        Decimal?  @map("discount_amount") @db.Decimal(10, 2)
+  discountPercent       Decimal?  @map("discount_percent") @db.Decimal(10, 2)
+  amountExcludingTax    Decimal?  @map("amount_excluding_tax") @db.Decimal(10, 2)
+  totalTaxAmount        Decimal?  @map("total_tax_amount") @db.Decimal(10, 2)
+  taxPercent            Decimal?  @map("tax_percent") @db.Decimal(10, 2)
+  amountIncludingTax    Decimal?  @map("amount_including_tax") @db.Decimal(10, 2)
+  netAmount             Decimal?  @map("net_amount") @db.Decimal(10, 2)
+  netTaxAmount          Decimal?  @map("net_tax_amount") @db.Decimal(10, 2)
+  netAmountIncludingTax Decimal?  @map("net_amount_including_tax") @db.Decimal(10, 2)
+  shipmentDate          DateTime? @map("shipment_date")
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  returnInvoice ReturnInvoice @relation(fields: [returnInvoiceId], references: [id], onDelete: Cascade)
+  product       Product       @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([returnInvoiceId])
+  @@index([productId])
+  @@map("return_invoice_line")
+}
+
+// Transactions de stock (historique des mouvements)
+model StockTransaction {
+  id              Int      @id @default(autoincrement())
+  productId       Int      @map("product_id")
+  salespersonId   Int      @map("salesperson_id")
+  type            String // 'entree', 'sortie'
+  qte             Decimal  @db.Decimal(10, 2)
+  purchaseOrderId Int?     @map("purchase_order_id")
+  deliveryNoteId  Int?     @map("delivery_note_id")
+  returnInvoiceId Int?     @map("return_invoice_id")
+  saleId          Int?     @map("sale_id")
+  reference       String?
+  createdAt       DateTime @default(now())
+
+  product       Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  salesperson   Salesperson    @relation(fields: [salespersonId], references: [id], onDelete: Cascade)
+  purchaseOrder PurchaseOrder? @relation(fields: [purchaseOrderId], references: [id], onDelete: SetNull)
+  deliveryNote  DeliveryNote?  @relation(fields: [deliveryNoteId], references: [id], onDelete: SetNull)
+  returnInvoice ReturnInvoice? @relation(fields: [returnInvoiceId], references: [id], onDelete: SetNull)
+  sale          Sale?          @relation(fields: [saleId], references: [id], onDelete: SetNull)
+
+  @@index([productId])
+  @@index([salespersonId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([purchaseOrderId])
+  @@index([deliveryNoteId])
+  @@index([returnInvoiceId])
+  @@index([saleId])
+  @@map("stock_transaction")
+}
+
+// Soldes de stock par produit et vendeur
+model StockSolde {
+  id            Int      @id @default(autoincrement())
+  productId     Int      @map("product_id")
+  salespersonId Int      @map("salesperson_id")
+  solde         Decimal  @default(0) @db.Decimal(10, 2)
+  lastUpdated   DateTime @default(now()) @updatedAt @map("last_updated")
+
+  product     Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  salesperson Salesperson @relation(fields: [salespersonId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, salespersonId])
+  @@index([productId])
+  @@index([salespersonId])
+  @@map("stock_solde")
+}
+
+// Bons de livraison
+model DeliveryNote {
+  id             Int       @id @default(autoincrement())
+  numero         String    @unique
+  salespersonId  Int       @map("salesperson_id")
+  clientId       Int       @map("client_id")
+  status         String    @default("cree") // 'cree', 'valide', 'annule'
+  dateLivraison  DateTime  @default(now()) @map("date_livraison")
+  dateValidation DateTime? @map("date_validation")
+  remarque       String?   @db.Text
+  montantTotal   Decimal   @default(0) @map("montant_total") @db.Decimal(10, 2)
+  montantHT      Decimal?  @map("montant_ht") @db.Decimal(10, 2)
+  montantTTC     Decimal?  @map("montant_ttc") @db.Decimal(10, 2)
+  montantTVA     Decimal?  @map("montant_tva") @db.Decimal(10, 2)
+  createdById    String    @map("created_by_id")
+  validatedById  String?   @map("validated_by_id")
+  saleId         Int?      @map("sale_id")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  salesperson       Salesperson        @relation(fields: [salespersonId], references: [id], onDelete: Restrict)
+  client            Client             @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  createdBy         User               @relation("DeliveryNoteCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  validatedBy       User?              @relation("DeliveryNoteValidatedBy", fields: [validatedById], references: [id], onDelete: SetNull)
+  sale              Sale?              @relation("DeliveryNoteSale")
+  lines             DeliveryNoteLine[]
+  stockTransactions StockTransaction[]
+
+  @@index([salespersonId])
+  @@index([clientId])
+  @@index([status])
+  @@index([dateLivraison])
+  @@index([saleId])
+  @@map("delivery_note")
+}
+
+// Lignes de bon de livraison
+model DeliveryNoteLine {
+  id             Int      @id @default(autoincrement())
+  deliveryNoteId Int      @map("delivery_note_id")
+  productId      Int      @map("product_id")
+  qte            Decimal  @db.Decimal(10, 2)
+  prixUnitaire   Decimal  @map("prix_unitaire") @db.Decimal(10, 2)
+  montant        Decimal  @db.Decimal(10, 2)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  deliveryNote DeliveryNote @relation(fields: [deliveryNoteId], references: [id], onDelete: Cascade)
+  product      Product      @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([deliveryNoteId])
+  @@index([productId])
+  @@map("delivery_note_line")
+}
+
+// Ventes
+model Sale {
+  id             Int       @id @default(autoincrement())
+  numero         String    @unique
+  salespersonId  Int       @map("salesperson_id")
+  clientId       Int       @map("client_id")
+  status         String    @default("cree") // 'cree', 'valide', 'annule'
+  dateVente      DateTime  @default(now()) @map("date_vente")
+  dateValidation DateTime? @map("date_validation")
+  remarque       String?   @db.Text
+  montantTotal   Decimal   @default(0) @map("montant_total") @db.Decimal(10, 2)
+  montantHT      Decimal?  @map("montant_ht") @db.Decimal(10, 2)
+  montantTTC     Decimal?  @map("montant_ttc") @db.Decimal(10, 2)
+  montantTVA     Decimal?  @map("montant_tva") @db.Decimal(10, 2)
+  createdById    String    @map("created_by_id")
+  validatedById  String?   @map("validated_by_id")
+  deliveryNoteId Int?      @unique @map("delivery_note_id")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  salesperson       Salesperson        @relation(fields: [salespersonId], references: [id], onDelete: Restrict)
+  client            Client             @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  createdBy         User               @relation("SaleCreatedBy", fields: [createdById], references: [id], onDelete: Restrict)
+  validatedBy       User?              @relation("SaleValidatedBy", fields: [validatedById], references: [id], onDelete: SetNull)
+  deliveryNote      DeliveryNote?      @relation("DeliveryNoteSale", fields: [deliveryNoteId], references: [id], onDelete: SetNull)
+  lines             SaleLine[]
+  stockTransactions StockTransaction[]
+
+  @@index([salespersonId])
+  @@index([clientId])
+  @@index([status])
+  @@index([dateVente])
+  @@index([deliveryNoteId])
+  @@map("sale")
+}
+
+// Lignes de vente
+model SaleLine {
+  id           Int      @id @default(autoincrement())
+  saleId       Int      @map("sale_id")
+  productId    Int      @map("product_id")
+  qte          Decimal  @db.Decimal(10, 2)
+  prixUnitaire Decimal  @map("prix_unitaire") @db.Decimal(10, 2)
+  montant      Decimal  @db.Decimal(10, 2)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sale    Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([saleId])
+  @@index([productId])
+  @@map("sale_line")
+}
