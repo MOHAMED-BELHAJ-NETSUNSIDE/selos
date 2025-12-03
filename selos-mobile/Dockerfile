@@ -12,7 +12,7 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY selos-mobile/ ./
-RUN npm run build
+RUN npx vite build
 
 # Production image with nginx
 FROM nginx:alpine AS runner
