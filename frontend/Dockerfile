@@ -5,7 +5,7 @@ FROM node:20-alpine AS base
 FROM base AS deps
 WORKDIR /app
 COPY frontend/package*.json ./
-RUN npm ci
+RUN npm install --legacy-peer-deps
 
 # Build the application
 FROM base AS builder
