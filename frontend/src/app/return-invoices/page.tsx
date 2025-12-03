@@ -78,7 +78,7 @@ function QuantityInput({
     const newValue = parseInt(e.target.value) || min;
     if (newValue >= min && (!max || newValue <= max)) {
       onChange(newValue);
-    } else if (newValue > max) {
+    } else if (max !== undefined && newValue > max) {
       onChange(max);
       toast.error(`La quantité ne peut pas dépasser le stock disponible (${max})`);
     } else if (newValue < min) {
