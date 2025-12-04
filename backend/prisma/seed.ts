@@ -1,17 +1,51 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
-import { PERMISSION_MODULES, toPermissionString } from '../src/permissions/permissions.registry';
 
 const prisma = new PrismaClient();
+
+// Fonction pour générer une permission string
+function toPermissionString(key: string, cap: 'read' | 'write' | 'delete'): string {
+  const normalized = key.replace(/\s+/g, '-');
+  return `${normalized}:${cap}`;
+}
 
 async function main() {
   console.log('🌱 Starting seed...');
 
+  // Définir tous les modules et leurs permissions
+  const permissionModules = [
+    { key: 'users', capabilities: ['read', 'write', 'delete'] },
+    { key: 'clients', capabilities: ['read', 'write', 'delete'] },
+    { key: 'client', capabilities: ['read', 'write'] },
+    { key: 'location', capabilities: ['read', 'write'] },
+    { key: 'roles', capabilities: ['read', 'write', 'delete'] },
+    { key: 'logs', capabilities: ['read'] },
+    { key: 'type-users', capabilities: ['read', 'write', 'delete'] },
+    { key: 'secteur', capabilities: ['read', 'write', 'delete'] },
+    { key: 'canal', capabilities: ['read', 'write', 'delete'] },
+    { key: 'type-vente', capabilities: ['read', 'write', 'delete'] },
+    { key: 'zone', capabilities: ['read', 'write', 'delete'] },
+    { key: 'region', capabilities: ['read', 'write', 'delete'] },
+    { key: 'sous-region', capabilities: ['read', 'write', 'delete'] },
+    { key: 'gouvernorat', capabilities: ['read', 'write', 'delete'] },
+    { key: 'delegation', capabilities: ['read', 'write', 'delete'] },
+    { key: 'localite', capabilities: ['read', 'write', 'delete'] },
+    { key: 'type-client', capabilities: ['read', 'write', 'delete'] },
+    { key: 'salesperson', capabilities: ['read', 'write', 'delete'] },
+    { key: 'chargement-type', capabilities: ['read', 'write', 'delete'] },
+    { key: 'purchase-order', capabilities: ['read', 'write', 'delete'] },
+    { key: 'delivery-note', capabilities: ['read', 'write', 'delete'] },
+    { key: 'sale', capabilities: ['read', 'write', 'delete'] },
+    { key: 'purchase-invoice', capabilities: ['read', 'write', 'delete'] },
+    { key: 'return-invoice', capabilities: ['read', 'write', 'delete'] },
+    { key: 'stock', capabilities: ['read'] },
+  ];
+
   // Générer toutes les permissions disponibles
   const allPermissions: string[] = [];
-  PERMISSION_MODULES.forEach(module => {
-    module.capabilities.forEach(cap => {
-      allPermissions.push(toPermissionString(module.key, cap));
+  permissionModules.forEach((module) => {
+    module.capabilities.forEach((cap) => {
+      allPermissions.push(toPermissionString(module.key, cap as 'read' | 'write' | 'delete'));
     });
   });
 
