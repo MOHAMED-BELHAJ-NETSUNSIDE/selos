@@ -70,7 +70,7 @@
     "typescript-eslint": "^8.20.0"
   },
   "prisma": {
-    "seed": "ts-node -r tsconfig-paths/register --transpile-only prisma/seed.ts"
+    "seed": "node prisma/seed.js"
   },
   "jest": {
     "moduleFileExtensions": [
