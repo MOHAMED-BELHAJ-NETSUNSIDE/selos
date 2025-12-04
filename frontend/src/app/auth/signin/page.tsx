@@ -1,14 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { signIn, getSession } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { toast } from 'sonner';
@@ -22,6 +21,7 @@ type SignInForm = z.infer<typeof signInSchema>;
 
 export default function SignInPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   const form = useForm<SignInForm>({
@@ -34,6 +34,7 @@ export default function SignInPage() {
 
   const onSubmit = async (data: SignInForm) => {
     setIsLoading(true);
+    setError(null); // Réinitialiser l'erreur
     try {
       const result = await signIn('credentials', {
         email: data.email,
@@ -42,13 +43,17 @@ export default function SignInPage() {
       });
 
       if (result?.error) {
-        toast.error('Email ou mot de passe incorrect');
+        const errorMessage = 'Email ou mot de passe incorrect';
+        setError(errorMessage);
+        toast.error(errorMessage);
       } else {
         toast.success('Connexion réussie');
         router.push('/dashboard');
       }
     } catch (error) {
-      toast.error('Une erreur est survenue');
+      const errorMessage = 'Une erreur est survenue lors de la connexion';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -62,6 +67,11 @@ export default function SignInPage() {
           <CardDescription className="text-center">
             Connectez-vous à votre compte Selos
           </CardDescription>
+          {error && (
+            <div className="mt-4 rounded-md bg-red-50 p-3 border border-red-200">
+              <p className="text-sm text-red-800 text-center">{error}</p>
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -105,14 +115,6 @@ export default function SignInPage() {
               </Button>
             </form>
           </Form>
-          <div className="mt-6 text-sm text-gray-600">
-            <p className="text-center">Comptes de test :</p>
-            <div className="mt-2 space-y-1 text-xs">
-              <p><strong>Admin:</strong> admin@selos.com / admin123</p>
-              <p><strong>Manager:</strong> manager@selos.com / manager123</p>
-              <p><strong>Vendeur:</strong> vendeur@selos.com / vendeur123</p>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>

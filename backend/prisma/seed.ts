@@ -1,17 +1,52 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
+import { PERMISSION_MODULES, toPermissionString } from '../src/permissions/permissions.registry';
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('🌱 Starting seed...');
 
-  // Existing roles/users seeding retained
+  // Générer toutes les permissions disponibles
+  const allPermissions: string[] = [];
+  PERMISSION_MODULES.forEach(module => {
+    module.capabilities.forEach(cap => {
+      allPermissions.push(toPermissionString(module.key, cap));
+    });
+  });
+
+  // Créer le rôle Admin avec toutes les permissions
   const adminRole = await prisma.role.upsert({
     where: { name: 'Admin' },
-    update: {},
-    create: { name: 'Admin', permissions: JSON.stringify(['users:read']) },
+    update: {
+      permissions: JSON.stringify(allPermissions),
+    },
+    create: { 
+      name: 'Admin', 
+      permissions: JSON.stringify(allPermissions),
+    },
   });
+
+  // Créer l'utilisateur admin avec le mot de passe 08545547
+  const hashedPassword = await bcrypt.hash('08545547', 10);
+  await prisma.user.upsert({
+    where: { email: 'admin@selos.com' },
+    update: {
+      password: hashedPassword,
+      roleId: adminRole.id,
+      isActive: true,
+    },
+    create: {
+      email: 'admin@selos.com',
+      password: hashedPassword,
+      firstName: 'Admin',
+      lastName: 'User',
+      roleId: adminRole.id,
+      isActive: true,
+    },
+  });
+
+  console.log('✅ Admin user created: admin@selos.com / 08545547');
 
   // Minimal domain data
   const gouv = await prisma.gouvernorat.upsert({
@@ -44,10 +79,25 @@ async function main() {
     create: { id: 1, nom: 'Détail' },
   });
 
-  await prisma.secteur.upsert({
+  const secteur = await prisma.secteur.upsert({
     where: { id: 1 },
     update: {},
-    create: { id: 1, nom: 'Secteur Nord', canalId: canal.id },
+    create: { id: 1, nom: 'Secteur Nord' },
+  });
+
+  // Créer la relation Secteur-Canal
+  await prisma.secteurCanal.upsert({
+    where: {
+      secteurId_canalId: {
+        secteurId: secteur.id,
+        canalId: canal.id,
+      },
+    },
+    update: {},
+    create: {
+      secteurId: secteur.id,
+      canalId: canal.id,
+    },
   });
 
   console.log('✅ Minimal domain seed completed');

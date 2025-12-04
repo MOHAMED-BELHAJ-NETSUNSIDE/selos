@@ -22,6 +22,11 @@ export class PermissionsGuard implements CanActivate {
       throw new ForbiddenException('User not found');
     }
 
+    // Les utilisateurs avec le rôle Admin ont automatiquement tous les accès
+    if (user.role?.name === 'Admin') {
+      return true;
+    }
+
     // Récupérer les permissions depuis user.role.permissions ou user.permissions
     let userPermissions: string[] = [];
     if (user.role?.permissions) {
